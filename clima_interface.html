@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Clima - Consulta Interativa</title>
+
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: "Segoe UI", Arial, sans-serif;
+        background: linear-gradient(135deg, #4f46e5, #0ea5e9);
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #333;
+    }
+
+    .card {
+        width: 420px;
+        background: white;
+        padding: 30px;
+        border-radius: 18px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+        animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(15px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    h2 {
+        text-align: center;
+        margin-bottom: 25px;
+        font-weight: 700;
+        font-size: 24px;
+        color: #222;
+    }
+
+    input {
+        width: 100%;
+        padding: 12px;
+        border-radius: 10px;
+        border: 1px solid #bbb;
+        margin-bottom: 15px;
+        font-size: 16px;
+    }
+
+    button {
+        width: 100%;
+        padding: 14px;
+        font-size: 17px;
+        color: white;
+        background: #2563eb;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: 0.25s;
+    }
+
+    button:hover {
+        background: #1d4ed8;
+        transform: translateY(-1px);
+    }
+
+    .resultado {
+        margin-top: 25px;
+        padding: 20px;
+        background: #0f172a;
+        border-radius: 12px;
+        color: #a7f3d0;
+        font-size: 15px;
+        white-space: pre-wrap;
+    }
+
+    .info-card {
+        margin-top: 20px;
+        padding: 15px;
+        background: #f3f4f6;
+        border-radius: 12px;
+        border-left: 6px solid #2563eb;
+        animation: fadeIn 0.4s ease;
+    }
+
+    .info-card h3 {
+        margin: 0 0 10px 0;
+    }
+</style>
+</head>
+
+<body>
+
+<div class="card">
+    <h2>🌤️ Consulta de Clima</h2>
+
+    <input id="cidade" placeholder="Digite a cidade...">
+
+    <button onclick="consultar()">Consultar</button>
+
+    <div id="resultado"></div>
+</div>
+
+
+<script>
+async function consultar() {
+    const cidade = document.getElementById("cidade").value.trim();
+
+    if (!cidade) {
+        alert("Digite uma cidade!");
+        return;
+    }
+
+    document.getElementById("resultado").innerHTML =
+        "<div class='info-card'><h3>🔄 Buscando clima...</h3></div>";
+
+    try {
+        const resposta = await fetch("http://localhost:8000/clima", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ cidade })
+        });
+
+        const dados = await resposta.json();
+
+        if (dados.detail) {
+            document.getElementById("resultado").innerHTML =
+                `<div class='info-card'><h3>❌ ${dados.detail}</h3></div>`;
+            return;
+        }
+
+        // Exibir resultado bonito
+        document.getElementById("resultado").innerHTML = `
+            <div class="info-card">
+                <h3>📍 Cidade:</h3>
+                <p>${dados.cidade}</p>
+            </div>
+
+            <div class="info-card">
+                <h3>🌡️ Temperatura:</h3>
+                <p>${dados.temperatura}ºC</p>
+            </div>
+
+            <div class="info-card">
+                <h3>☁️ Condição:</h3>
+                <p>${dados.condicao}</p>
+            </div>
+        `;
+
+    } catch (e) {
+        document.getElementById("resultado").innerHTML =
+            `<div class='info-card'><h3>❌ Erro ao consultar API</h3><p>${e}</p></div>`;
+    }
+}
+</script>
+
+</body>
+</html>
